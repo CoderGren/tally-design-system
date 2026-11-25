@@ -1,7 +1,7 @@
 import { createHttpLedgerClient } from './http-client';
 import { createMockLedgerClient } from './mock-client';
 import { withMockFallback } from './resilient-client';
-import type { LedgerClient } from './types';
+import type { Currency, LedgerClient } from './types';
 
 export interface AccountOption {
   id: string;
@@ -26,7 +26,7 @@ export const DEFAULT_COUNTERPARTIES: AccountOption[] = [
  * fallback (API configured but not reachable) still renders. History is replayed through the
  * ledger rules.
  */
-export function createMockClient(primary: AccountOption, counterparties: AccountOption[], latencyMs = 250): LedgerClient {
+export function createMockClient(primary: AccountOption, counterparties: AccountOption[], latencyMs = 250, currency: Currency = 'USD'): LedgerClient {
   const [first, second, third] = counterparties;
   const history = [
     { fromAccountId: 'funding', toAccountId: primary.id, amountCents: 12_500_000, memo: 'Seed round tranche' },
@@ -37,7 +37,7 @@ export function createMockClient(primary: AccountOption, counterparties: Account
     { fromAccountId: 'funding', toAccountId: primary.id, amountCents: 389_950, memo: 'Customer invoice #1043' },
   ];
   return createMockLedgerClient({
-    accounts: [{ id: 'funding', name: 'Incoming wires', allowNegative: true }, primary, ...counterparties],
+    accounts: [{ id: 'funding', name: 'Incoming wires', allowNegative: true }, primary, ...counterparties].map((a) => ({ ...a, currency })),
     history,
     latencyMs,
   });

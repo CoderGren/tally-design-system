@@ -1,9 +1,10 @@
-import { Amount, Badge, Card } from '@tally/ui';
+import { Amount, Badge, Card, sumCents } from '@tally/ui';
 import type { AccountEntry, Balance } from '../api/types';
 
 export function BalanceCard({ balance, entries, loading }: { balance: Balance | null; entries: AccountEntry[]; loading: boolean }) {
-  const inflow = entries.filter((e) => e.amountCents > 0).reduce((s, e) => s + e.amountCents, 0);
-  const outflow = entries.filter((e) => e.amountCents < 0).reduce((s, e) => s + e.amountCents, 0);
+  const inflow = sumCents(entries.filter((e) => e.amountCents > 0).map((e) => e.amountCents));
+  const outflow = sumCents(entries.filter((e) => e.amountCents < 0).map((e) => e.amountCents));
+  const currency = balance?.currency;
   return (
     <Card title="Available balance" description={balance?.name ?? 'Loading account'} className="demo-balance">
       <div aria-live="polite" aria-busy={loading}>
@@ -13,13 +14,13 @@ export function BalanceCard({ balance, entries, loading }: { balance: Balance | 
         <div>
           <dt>Money in</dt>
           <dd>
-            <Amount cents={inflow} signed />
+            {currency ? <Amount cents={inflow} currency={currency} signed /> : null}
           </dd>
         </div>
         <div>
           <dt>Money out</dt>
           <dd>
-            <Amount cents={outflow} signed />
+            {currency ? <Amount cents={outflow} currency={currency} signed /> : null}
           </dd>
         </div>
         <div>

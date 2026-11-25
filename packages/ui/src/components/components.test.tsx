@@ -254,6 +254,24 @@ describe('Dialog', () => {
   });
 });
 
+describe('Dialog landmarks', () => {
+  it("doesn't add banner/contentinfo landmarks next to the page's own when portalled to <body>", async () => {
+    render(
+      <>
+        <header>Page header</header>
+        <main>
+          <DialogHarness />
+        </main>
+        <footer>Page footer</footer>
+      </>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    expect(screen.getAllByRole('banner')).toHaveLength(1);
+    expect(screen.getAllByRole('contentinfo')).toHaveLength(1);
+    expect(await axeViolations(document.body)).toEqual([]);
+  });
+});
+
 function ToastHarness() {
   const toast = useToast();
   return (

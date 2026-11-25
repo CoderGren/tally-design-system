@@ -104,21 +104,23 @@ export function Dialog({
         className={cx('tally-dialog', `tally-dialog--${size}`)}
         onKeyDown={onKeyDown}
       >
-        <header className="tally-dialog__header">
+        {/* div, not <header>/<footer>: the dialog portals to <body>, where those would become
+            extra banner/contentinfo landmarks competing with the page's own. */}
+        <div className="tally-dialog__header">
           <h2 id={titleId} className="tally-dialog__title">
             {title}
           </h2>
           <button type="button" className="tally-dialog__close" onClick={onClose} aria-label="Close dialog">
             <span aria-hidden="true">×</span>
           </button>
-        </header>
+        </div>
         {description && (
           <p id={descId} className="tally-dialog__description">
             {description}
           </p>
         )}
         {children && <div className="tally-dialog__body">{children}</div>}
-        {footer && <footer className="tally-dialog__footer">{footer}</footer>}
+        {footer && <div className="tally-dialog__footer">{footer}</div>}
       </div>
     </div>,
     document.body,

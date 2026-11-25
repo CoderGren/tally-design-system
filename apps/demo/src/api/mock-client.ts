@@ -1,10 +1,12 @@
-import { LedgerApiError, type AccountEntry, type Balance, type LedgerClient, type Transaction, type TransferInput } from './types';
+import { LedgerApiError, type AccountEntry, type Balance, type Currency, type LedgerClient, type Transaction, type TransferInput } from './types';
 
 export interface MockAccount {
   id: string;
   name: string;
   /** Funding/clearing accounts may go negative, like in the real ledger. */
   allowNegative?: boolean;
+  /** Defaults to USD. Transfers must stay within one currency, like the real API. */
+  currency?: Currency;
 }
 
 /**
@@ -12,7 +14,7 @@ export interface MockAccount {
  * no overdrafts on customer accounts, idempotency keys, single reversal.
  */
 export function createMockLedgerClient(seed: { accounts: MockAccount[]; history?: TransferInput[]; now?: () => Date; latencyMs?: number }): LedgerClient {
-  const accounts = new Map(seed.accounts.map((a) => [a.id, { ...a, balanceCents: 0 }]));
+  const accounts = new Map(seed.accounts.map((a) => [a.id, { ...a, currency: a.currency ?? ('USD' as Currency), balanceCents: 0 }]));
   const transactions = new Map<string, Transaction>();
   const entries: AccountEntry[] = [];
   const idempotency = new Map<string, { fingerprint: string; transactionId: string }>();
@@ -24,9 +26,11 @@ export function createMockLedgerClient(seed: { accounts: MockAccount[]; history?
   const delay = () => new Promise((r) => setTimeout(r, seed.latencyMs ?? 0));
 
   function post(kind: Transaction['kind'], legs: Array<{ accountId: string; amountCents: number }>, key: string, memo?: string, reverses?: string): Transaction {
+    const currency = accounts.get(legs[0]!.accountId)?.currency ?? 'USD';
     for (const leg of legs) {
       const a = accounts.get(leg.accountId);
       if (!a) throw new LedgerApiError(404, 'NOT_FOUND', `account ${leg.accountId} not found`);
+      if (a.currency !== currency) throw new LedgerApiError(422, 'CURRENCY_MISMATCH', 'accounts use different currencies');
       if (a.balanceCents + leg.amountCents < 0 && !a.allowNegative) {
         throw new LedgerApiError(422, 'INSUFFICIENT_FUNDS', `${a.name} has insufficient funds`);
       }
@@ -34,7 +38,7 @@ export function createMockLedgerClient(seed: { accounts: MockAccount[]; history?
     const txn: Transaction = {
       id: `mock-${String(++seq).padStart(5, '0')}`,
       kind,
-      currency: 'USD',
+      currency,
       entries: legs,
       createdAt: now().toISOString(),
       idempotencyKey: key,
@@ -49,7 +53,7 @@ export function createMockLedgerClient(seed: { accounts: MockAccount[]; history?
         counterpartyAccountId: legs[(i + 1) % legs.length]!.accountId,
         kind,
         amountCents: leg.amountCents,
-        currency: 'USD',
+        currency,
         createdAt: txn.createdAt,
         ...(memo ? { memo } : {}),
         ...(reverses ? { reversesTransactionId: reverses } : {}),
@@ -104,7 +108,7 @@ export function createMockLedgerClient(seed: { accounts: MockAccount[]; history?
       await delay();
       const a = accounts.get(accountId);
       if (!a) throw new LedgerApiError(404, 'NOT_FOUND', `account ${accountId} not found`);
-      return { accountId: a.id, name: a.name, currency: 'USD', balanceCents: a.balanceCents };
+      return { accountId: a.id, name: a.name, currency: a.currency, balanceCents: a.balanceCents };
     },
     async listTransactions(accountId, { limit = 25, cursor } = {}) {
       await delay();

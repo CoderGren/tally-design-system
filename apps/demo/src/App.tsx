@@ -104,7 +104,10 @@ function Dashboard({ createConfig }: AppProps) {
 
         <main className="demo-grid">
           <BalanceCard balance={ledger.balance} entries={ledger.entries} loading={ledger.loading} />
-          <TransferForm client={client} from={primary} counterparties={counterparties} availableCents={ledger.balance?.balanceCents ?? null} onPosted={ledger.refresh} />
+          <TransferForm client={client} from={primary} counterparties={counterparties} availableCents={ledger.balance?.balanceCents ?? null}
+            currency={ledger.balance?.currency ?? null}
+            onPosted={ledger.refresh}
+          />
           <div className="demo-grid__wide">
             <TransactionsTable entries={entries} accountName={accountName} reversedIds={reversedTxnIds} onReverse={setReversing} />
           </div>

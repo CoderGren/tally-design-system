@@ -73,7 +73,8 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
       autoComplete="off"
       prefix={symbol}
       value={text}
-      error={error ?? parseError ?? undefined}
+      // The specific parse error ("JPY has no minor units") beats a generic form-level message.
+      error={parseError ?? error ?? undefined}
       hint={hint ?? `Amount in ${currency}`}
       onFocus={(e) => {
         setFocused(true);
