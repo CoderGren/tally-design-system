@@ -1,0 +1,32 @@
+{
+  "name": "tally-design-system",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tally: an accessible fintech React + TypeScript design system with a demo account dashboard.",
+  "author": "Glen Burchfield <glen@gmbxdigital.com>",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @tally/demo dev",
+    "storybook": "pnpm --filter @tally/ui storybook",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build",
+    "build-storybook": "pnpm --filter @tally/ui build-storybook"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.8",
+    "globals": "^17.14.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.74.0"
+  }
+}
